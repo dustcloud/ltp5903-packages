@@ -1,0 +1,15 @@
+# /etc/network/interfaces -- configuration file for ifup(8), ifdown(8)
+# The loopback interface
+# automatically added when upgrading
+auto lo
+     iface lo inet loopback
+
+# Ethernet Settings
+# use ifswitch-to-static if you wish to use static ip allocations
+# use ifswitch-to-dhcp if you wish to use dhcp ip allocations
+auto eth0
+     iface eth0 inet static
+     address 192.168.99.100
+     netmask 255.255.255.0
+     gateway 192.168.99.1
+

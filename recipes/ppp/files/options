@@ -1,0 +1,15 @@
+#debug
+-detach
+noauth
+local
+lock
+# link control, detect disconnection quickly
+lcp-echo-interval 2
+lcp-echo-failure 3
+# compression settings, PPP prefers deflate compression
+deflate 15,15
+bsdcomp 15,15
+# header compression is enabled by default (requires the slhc kernel module)
+# IP address assignment, accept IP requests from client
+ipcp-accept-local
+ipcp-accept-remote

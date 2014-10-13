@@ -1,0 +1,8 @@
+--- udhcp-0.9.8/samples/sample1.script	2009-09-10 10:31:53.000000000 -0700
++++ udhcp-0.9.8/samples/sample.script	2009-09-10 10:32:14.000000000 -0700
+@@ -4,4 +4,4 @@
+ # common initialization first, especially if more dhcp event notifications
+ # are added.
+ 
+-exec /usr/share/udhcpc/sample.$1
++exec /usr/share/udhcpc/default.$1

@@ -1,0 +1,67 @@
+#!/bin/sh
+
+# ntpd
+#
+# start or stop the ntpd server
+
+NTPD=/usr/sbin/ntpd
+NTPDATE=/usr/bin/ntpdate
+NTP_CONF=/etc/ntp.conf
+
+pid_file=/var/run/ntpd.pid
+
+
+# get the ntp server from the conf file (filter out servers starting with 127.)
+# BUT if no server is enabled, don't try to sync
+NTP_SERVER=`grep "^server " $NTP_CONF | grep -v ' 127\.' | head -n 1 | awk '{print $2}'`
+
+test -x $NTPD || exit 0
+
+
+ntpd_start() {
+    if [ -x "$NTPDATE" -a -n "$NTP_SERVER" ]; then
+	echo "Syncing with NTP server:" $NTP_SERVER
+	$NTPDATE $NTP_SERVER
+    fi
+    /sbin/start-stop-daemon --start --quiet --pidfile $pid_file --exec $NTPD -- -x -p $pid_file
+}
+
+ntpd_stop() {
+    /sbin/start-stop-daemon --stop --quiet --oknodo --pidfile $pid_file --exec $NTPD
+}
+
+
+case "$1" in
+  start)
+	echo "Starting network time server: ntpd"
+	ntpd_start
+	;;
+
+  stop)
+	echo "Stopping network time server: ntpd"
+	ntpd_stop
+	rm -f $pid_file
+	;;
+
+  status)
+	if [ -e $pid_file ]; then
+	    echo "Network time server is running."
+	else 
+	    echo "Network time server is stopped."
+	fi
+	;;
+
+  restart)
+        echo "Restarting network time server: ntpd"
+	ntpd_stop
+	sleep 5
+	ntpd_start
+	;;
+
+  *)
+	echo "usage: $0 (start | stop | restart | status)"
+	exit 1
+	;;
+esac
+
+exit

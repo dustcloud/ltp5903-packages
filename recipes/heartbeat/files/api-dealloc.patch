@@ -1,0 +1,55 @@
+diff -u -bur heartbeat-1.2.5/contrib/ipfail/ipfail.c heartbeat-1.2.5-patched/contrib/ipfail/ipfail.c
+--- heartbeat-1.2.5/contrib/ipfail/ipfail.c	2005-08-11 14:08:23.000000000 -0700
++++ heartbeat-1.2.5-patched/contrib/ipfail/ipfail.c	2009-09-25 14:54:32.000000000 -0700
+@@ -799,9 +799,9 @@
+ 		cl_log(LOG_ERR, "REASON: %s", hb->llc_ops->errmsg(hb));
+ 		exit(14);
+ 	}
+-	if (hb->llc_ops->delete(hb) != HA_OK) {
++	if (hb->llc_ops->dealloc(hb) != HA_OK) {
+ 		cl_log(LOG_ERR, "REASON: %s", hb->llc_ops->errmsg(hb));
+-		cl_log(LOG_ERR, "Cannot delete API object.");
++		cl_log(LOG_ERR, "Cannot dealloc API object.");
+ 		exit(15);
+ 	}
+ }
+diff -u -bur heartbeat-1.2.5/heartbeat/cl_status.c heartbeat-1.2.5-patched/heartbeat/cl_status.c
+--- heartbeat-1.2.5/heartbeat/cl_status.c	2005-11-14 13:01:15.000000000 -0800
++++ heartbeat-1.2.5-patched/heartbeat/cl_status.c	2009-09-25 14:54:51.000000000 -0700
+@@ -305,8 +305,8 @@
+ 		}
+ 	}
+ 	if (hb != NULL) {
+-		if (hb->llc_ops->delete(hb) != HA_OK) {
+-			cl_log(LOG_ERR, "Cannot delete API object.");
++		if (hb->llc_ops->dealloc(hb) != HA_OK) {
++			cl_log(LOG_ERR, "Cannot dealloc API object.");
+ 			cl_log(LOG_ERR, "REASON: %s", hb->llc_ops->errmsg(hb));
+ 			/* Comment it to avoid to mask the subcommand's return
+ 			 * ret_value = UNKNOWN_ERROR;
+diff -u -bur heartbeat-1.2.5/include/hb_api.h heartbeat-1.2.5-patched/include/hb_api.h
+--- heartbeat-1.2.5/include/hb_api.h	2004-10-15 22:22:46.000000000 -0700
++++ heartbeat-1.2.5-patched/include/hb_api.h	2009-09-25 14:49:07.000000000 -0700
+@@ -71,7 +71,7 @@
+ struct llc_ops {
+ 	int		(*signon) (ll_cluster_t*, const char * service);
+ 	int		(*signoff) (ll_cluster_t*);
+-	int		(*delete) (ll_cluster_t*);
++	int		(*dealloc) (ll_cluster_t*);
+ 	
+ /*
+  *************************************************************************
+diff -u -bur heartbeat-1.2.5/lib/hbclient/api_test.c heartbeat-1.2.5-patched/lib/hbclient/api_test.c
+--- heartbeat-1.2.5/lib/hbclient/api_test.c	2004-04-29 10:23:08.000000000 -0700
++++ heartbeat-1.2.5-patched/lib/hbclient/api_test.c	2009-09-25 14:52:47.000000000 -0700
+@@ -307,8 +307,8 @@
+ 		cl_log(LOG_ERR, "REASON: %s\n", hb->llc_ops->errmsg(hb));
+ 		exit(10);
+ 	}
+-	if (hb->llc_ops->delete(hb) != HA_OK) {
+-		cl_log(LOG_ERR, "Cannot delete API object.\n");
++	if (hb->llc_ops->dealloc(hb) != HA_OK) {
++		cl_log(LOG_ERR, "Cannot dealloc API object.\n");
+ 		cl_log(LOG_ERR, "REASON: %s\n", hb->llc_ops->errmsg(hb));
+ 		exit(11);
+ 	}

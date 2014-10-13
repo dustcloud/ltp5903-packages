@@ -1,0 +1,18 @@
+#!/bin/sh
+
+PID_FILE="/var/run/thttpd_wrapper.pid"
+THTTPD_CONF_FILE="/etc/thttpd.conf"
+THTTPD_DATA="/home/httpd"
+
+echo "$$" > "${PID_FILE}"
+
+while true ; do
+    if [ -f "$THTTPD_CONF_FILE" ]; then
+        /usr/sbin/thttpd -D -C $THTTPD_CONF_FILE -h 127.0.0.1
+    else
+        /usr/sbin/thttpd -D -dd $THTTPD_DATA -h 127.0.0.1
+    fi
+    sleep 10
+done
+
+rm -f "${PID_FILE}"

@@ -1,0 +1,40 @@
+# Default shell profile
+
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:$PATH
+export PATH
+
+export EDITOR=vi
+export PAGER=less
+
+export HISTFILE=/tmp/${LOGNAME}"_bash_history"
+
+# set the autologout timeout (in seconds)
+export TMOUT=3600
+
+test -z "$TERM" && TERM="vt100"	# Basic terminal capab. For screen etc.
+
+if [ ! -e /etc/localtime ]; then
+	# Time Zone. Look at http://theory.uwinnipeg.ca/gnu/glibc/libc_303.html 
+	# for an explanation of how to set this to your local timezone.	
+	TZ="UTC"
+	export TZ
+fi
+
+if [ "$PS1" ]; then
+   PS1='\u@\h:\w\$ '
+fi
+
+if [ -d /etc/profile.d ]; then
+  for i in /etc/profile.d/*.sh; do
+    if [ -r $i ]; then
+      . $i
+    fi
+  done
+  unset i
+fi
+
+# Common aliases
+alias ls="ls -F"
+alias ll="ls -Favl"
+
+umask 022

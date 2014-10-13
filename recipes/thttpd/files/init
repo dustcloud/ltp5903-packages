@@ -1,0 +1,51 @@
+#!/bin/sh
+#
+# thttpd startup script
+
+THTTPD_WRAPPER="/usr/sbin/thttpd_wrapper"
+THTTP_PID_FILE="/var/run/thttpd.pid"
+WRAPPER_PID_FILE="/var/run/thttpd_wrapper.pid"
+
+if [ ! -x ${THTTPD_WRAPPER} ] ; then
+    echo "error: can not find startup script '${THTTPD_WRAPPER}'"
+    exit 1
+fi
+
+
+case $1 in
+    start)
+	echo "Starting thttpd..."
+	start-stop-daemon --start -b -x ${THTTPD_WRAPPER}
+	;;
+
+    stop)
+	echo "Stopping thttpd..."
+	# First kill the wrapper so it doesn't respawn thttp
+	if [ -f ${WRAPPER_PID_FILE} ]; then
+	    kill `cat ${WRAPPER_PID_FILE}`
+	    rm -f "${WRAPPER_PID_FILE}"
+	fi
+	if [ -f ${THTTP_PID_FILE} ]; then
+	    kill `cat ${THTTP_PID_FILE}`
+	    rm -f "${THTTP_PID_FILE}"
+	fi
+	;;
+
+    restart)
+	$0 stop
+	sleep 2
+	$0 start
+	;;
+
+    status)
+	if [ -f "${THTTP_PID_FILE}" ]; then
+	    echo "thttpd is running"
+	else
+	    echo "thttpd is stopped"
+	fi
+	;;
+
+    *)
+	echo "Usage:  /etc/init.d/thttpd { start | stop | restart | status }"
+	;;
+esac

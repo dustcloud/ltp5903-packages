@@ -1,0 +1,22 @@
+--- stunnel-5.03.orig/configure.ac	2014-06-26 11:05:44.000000000 -0700
++++ stunnel-5.03/configure.ac	2014-08-27 16:33:16.000000000 -0700
+@@ -57,19 +57,6 @@
+     ])
+ CFLAGS="$valid_CFLAGS"; LDFLAGS="$valid_LDFLAGS"
+ 
+-AC_MSG_CHECKING([whether $CC accepts -pie])
+-valid_CFLAGS="$CFLAGS"; CFLAGS="$CFLAGS -fPIE"
+-valid_LDFLAGS="$LDFLAGS"; LDFLAGS="$LDFLAGS -pie -fPIE"
+-AC_LINK_IFELSE([AC_LANG_SOURCE([int main() {return 0;}])],
+-    [
+-        AC_MSG_RESULT([yes])
+-        AC_SUBST([stunnel_CFLAGS], ["$stunnel_CFLAGS -fPIE"])
+-        AC_SUBST([stunnel_LDFLAGF], ["$stunnel_LDFLAGF -pie -fPIE"])
+-    ], [
+-        AC_MSG_RESULT([no])
+-    ])
+-CFLAGS="$valid_CFLAGS"; LDFLAGS="$valid_LDFLAGS"
+-
+ AC_MSG_CHECKING([whether $CC accepts -Wall])
+ valid_CFLAGS="$CFLAGS"; CFLAGS="$CFLAGS -Wall"
+ AC_LINK_IFELSE([AC_LANG_SOURCE([int main() {return 0;}])],

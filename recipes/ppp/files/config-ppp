@@ -1,0 +1,246 @@
+#!/bin/sh
+# $Id: config-ppp,v 1.5.8.1 2008-09-11 22:22:25 dbacher Exp $
+
+# config-ppp
+#
+# enable or disable PPP on the available serial port
+
+usage() {
+    echo "usage: config-ppp [-p <port>] [-l <local IP>] [-r <remote IP>] [-w] [ enable | enable-windows | disable | status ]"
+    echo "   port      - serial port (eg, ttyS1)"
+    echo "   local IP  - local IP address"
+    echo "   remote IP - remote IP address"
+    echo "   -w        - configure to run with a windows client"
+}
+
+# LATER: deal with PPP running on multiple ports
+
+PORT=ttyS1
+FOR_WINDOWS=false
+DEFAULT_LOCAL_IP=192.168.101.10
+DEFAULT_REMOTE_IP=192.168.101.11
+
+INITTAB="/etc/inittab"
+
+# read the command line arguments
+
+while getopts "p:l:r:w" opt ; do
+    case $opt in
+        p) PORT=$OPTARG ;;
+        l) LOCAL_IP=$OPTARG ;; 
+        r) REMOTE_IP=$OPTARG ;;
+        w) FOR_WINDOWS=true ;;
+        *) usage; exit 1;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+action=$1
+if [ -z "$action" ]; then
+    action=none
+fi
+
+PPP_OPTIONS="/etc/ppp/options.$PORT"
+
+if [ -z "$LOCAL_IP" ]; then
+    # get current setting
+    LOCAL_IP=`cat $PPP_OPTIONS | grep ":" | cut -d ':' -f 1`
+    if [ -z "$LOCAL_IP" ]; then
+        # use default
+        LOCAL_IP=$DEFAULT_LOCAL_IP
+    fi
+fi
+
+if [ -z "$REMOTE_IP" ]; then
+    # get current setting
+    REMOTE_IP=`cat $PPP_OPTIONS | grep ":" | cut -d ':' -f 2`
+    if [ -z "$REMOTE_IP" ]; then
+        # use default
+        REMOTE_IP=$DEFAULT_REMOTE_IP
+    fi
+fi
+
+# config_ppp_options
+#
+# update configurable ppp options
+# note: replaces /etc/ppp/options.PORT
+
+config_ppp_options() {
+    rm -f $PPP_OPTIONS
+    # whether passive option depends on the port
+    local passive_option="passive"
+    if [ "$PORT" = "ttyS0" ]; then
+	passive_option="#passive"
+    fi
+    # write the new ppp options to the port-specific options file
+    cat > $PPP_OPTIONS <<EOF
+# hardware flow control is automatically on for ttyS1 -- but because of a
+# kernel bug, ppp should not try to enable flow control
+nocrtscts
+$passive_option
+$LOCAL_IP:$REMOTE_IP
+EOF
+}
+
+config_windows_ppp_options() {
+    # timeout duration depends on the port
+    local timeout="3600"
+    if [ "$PORT" = "ttyS0" ]; then
+	timeout="120"
+    fi
+    cat >> $PPP_OPTIONS <<EOF 
+connect '/usr/sbin/chat -v -t $timeout -f /etc/ppp/winclient.chat'
+EOF
+}
+
+
+# enable/disable ppp_inittab
+#
+# enable or disable ppp in the init configuration
+# note: assumes that /etc/inittab has the appropriate entries
+
+update_inittab() {
+    local sedexp=$1
+    
+    local updatetab="$INITTAB.update"
+    local backup="$INITTAB.orig"
+
+    # update (uncomment) the line containing /usr/sbin/pppd
+    rm -f $updatetab
+    sed -e "$sedexp" $INITTAB > $updatetab
+    # verify that /etc/inittab looks functional
+    if [ $? -ne 0 ]; then
+	return 1
+    fi
+    # count the lines in the updated file
+    local lines=`sed -n '$=' $updatetab`
+    if [ -z "$lines" -o "$lines" -lt 2 ]; then
+	echo "error: updated inittab has too few lines"
+	return 1
+    fi
+
+    # create a backup
+    cp -f $INITTAB $backup
+    # replace the original /etc/inittab
+    mv -f $updatetab $INITTAB
+}
+
+enable_ppp_inittab() {
+    # only update the inittab for changes on ttyS1
+    if [ "$PORT" = "ttyS1" ]; then
+	update_inittab "s|^#*\(.*:/usr/bin/start-serial /usr/sbin/pppd\) .*$|\1 $PORT|"
+    fi
+    return $?
+}
+
+disable_ppp_inittab() {
+    # only update the inittab for changes on ttyS1
+    if [ "$PORT" = "ttyS1" ]; then
+	update_inittab "s|^#*\(.*:/usr/bin/start-serial /usr/sbin/pppd .*\)$|#\1|"
+    fi
+    return $?
+}
+
+
+# stop_ppp
+#
+# kill the pppd daemon
+
+stop_ppp() {
+    local pid=`ps -e | grep pppd | awk '{ print $1 }'`
+    if [ ! -z "$pid" ]; then
+	kill $pid
+    fi
+}
+
+
+device="/dev/$PORT"
+exit_code=0
+
+case $action in
+    
+    enable*|on)
+	# install the default startup links
+	echo "Enabling PPP on $device."
+
+	# set the PPP options
+	config_ppp_options
+	if [ $? -ne 0 ]; then
+	    echo "error: could not update ppp options file"
+	    exit 1
+	fi
+
+	if [[ "$action" = "enable-windows"  || "$FOR_WINDOWS" = "true" ]]; then
+	    config_windows_ppp_options
+	fi
+
+	# ensure ppp modules are loaded
+	/etc/init.d/ppp-modules start
+	update-rc.d -f ppp-modules remove
+	update-rc.d -f ppp-modules defaults 20 80
+	
+        # enable ppp respawning in inittab
+        enable_ppp_inittab
+	if [ $? -ne 0 ]; then
+	    echo "error: could not change system configuration"
+	    exit 1
+	fi
+	
+	# re-initialize
+	init q
+	# make sure any running PPP process gets restarted
+	stop_ppp
+	;;
+
+    disable|off)
+	echo "Disabling PPP."
+	
+	# disable ppp respawning in inittab
+	disable_ppp_inittab
+	if [ $? -ne 0 ]; then
+	    echo "error: could not change system configuration"
+	    exit 1
+	fi
+
+	# re-initialize (using busybox, no telinit)
+	init q
+	# make sure any running PPP process is shutdown
+	stop_ppp
+	;;
+
+    status)
+	# check whether ppp is enabled
+	grep '^[^#]\+:/usr/bin/start-serial /usr/sbin/pppd' $INITTAB > /dev/null
+	if [ $? -ne 0 ]; then
+	    echo "PPP is disabled"
+	else
+	    # if PPP is enabled, look for the special Windows chat script
+	    grep '^connect' $PPP_OPTIONS > /dev/null
+	    if [ $? -ne 0 ]; then
+		echo "PPP is enabled for Linux connections"
+	    else
+		echo "PPP is enabled for Windows connections"
+	    fi
+	fi
+	;;
+
+    none)
+        # just set options -- and be quiet
+	config_ppp_options
+	if [ $? -ne 0 ]; then
+	    echo "error: could not update ppp options file"
+	    exit 1
+	fi
+	if [[ "$action" = "enable-windows" || "$FOR_WINDOWS" = "true" ]]; then
+	    config_windows_ppp_options
+	fi
+        ;;
+
+    *)
+	usage
+	exit_code=1
+	;;
+
+esac
+
+exit $exit_code

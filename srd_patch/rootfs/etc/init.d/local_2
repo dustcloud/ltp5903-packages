@@ -1,0 +1,43 @@
+#!/bin/sh
+#
+# manage local user options for MMC/SD support
+
+case "$1" in
+    start)
+	echo "Starting steps to enable MMC/SD support"
+	echo "Removing SPI module just to be sure...."
+	rmmod /lib/modules/2.6.28/atmel_spi.ko
+	sleep 1
+	echo "Enabling MMC core module and MMC block module ..."
+	insmod /lib/modules/2.6.28/mmc_core.ko
+	insmod /lib/modules/2.6.28/mmc_block.ko
+	sleep 2 
+	echo "Enable the drive at91_mci ...... "
+	insmod /lib/modules/2.6.28/at91_mci_walnut.ko
+	;;
+    stop)
+	echo "Starting steps to disable MMC/SD support"
+	rmmod /lib/modules/2.6.28/at91_mci_walnut.ko
+	rmmod /lib/modules/2.6.28/mmc_block.ko
+	rmmod /lib/modules/2.6.28/mmc_core.ko
+	;;
+    force-reload|restart)
+	echo "Removing SPI module just to be sure...."
+	rmmod /lib/modules/2.6.28/atmel_spi.ko
+	sleep 1
+
+	echo "Enabling MMC core module and MMC block module ..."
+	insmod /lib/modules/2.6.28/mmc_core.ko
+	insmod /lib/modules/2.6.28/mmc_block.ko
+	sleep 2 
+
+	echo "Enable the drive at91_mci ...... "
+	insmod /lib/modules/2.6.28/at91_mci_walnut.ko
+	;;
+    *)
+	echo "Usage: /etc/init.d/local_2 {start|stop|restart|force-reload}"
+	exit 1
+	;;
+esac
+
+exit 0

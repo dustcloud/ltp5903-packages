@@ -1,0 +1,13 @@
+--- udhcp-0.9.8/dhcpc.c.orig	2009-10-30 16:14:39.000000000 -0700
++++ udhcp-0.9.8/dhcpc.c	2009-11-04 10:30:49.000000000 -0800
+@@ -322,6 +322,10 @@
+ 	
+ 	state = INIT_SELECTING;
+ 	run_script(NULL, "deconfig");
++
++    // patch from eInfoChips: initialize fd to avoid null reads after daemonizing
++    fd = -1; 
++    
+ 	change_mode(LISTEN_RAW);
+ 
+ 	for (;;) {

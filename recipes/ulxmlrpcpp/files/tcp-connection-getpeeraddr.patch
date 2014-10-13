@@ -1,0 +1,41 @@
+diff -u -bur ulxmlrpcpp-1.7.3/ulxmlrpcpp/ulxr_tcpip_connection.cpp ulxmlrpcpp-1.7.3-patched/ulxmlrpcpp/ulxr_tcpip_connection.cpp
+--- ulxmlrpcpp-1.7.3/ulxmlrpcpp/ulxr_tcpip_connection.cpp	2007-11-18 12:01:09.000000000 -0800
++++ ulxmlrpcpp-1.7.3-patched/ulxmlrpcpp/ulxr_tcpip_connection.cpp	2009-05-13 14:17:02.909950250 -0700
+@@ -350,7 +350,9 @@
+                               ulxr_i18n(ULXR_PCHAR("Could not get domain name: "))
+                                    + ULXR_GET_STRING(getErrorString(getLastError())), 500);
+ 
+-  if (buffer[0] != 0)
++  const char NULL_DOMAIN[] = "(none)";
++  // ignore empty domain string and the 'none' domain result
++  if (buffer[0] != 0 && strncmp(NULL_DOMAIN, buffer, sizeof(NULL_DOMAIN)) != 0)
+   {
+     pimpl->host_name += ULXR_PCHAR(".");
+     pimpl->host_name += ULXR_GET_STRING(buffer);
+@@ -777,6 +779,11 @@
+   return pimpl->remote_name;
+ }
+ 
++ULXR_API_IMPL(struct sockaddr_in) TcpIpConnection::getPeerAddr() const
++{
++  return pimpl->remotedata;
++}
++
+ 
+ ULXR_API_IMPL(void) TcpIpConnection::setServerData (ServerSocketData *in_server_data)
+ {
+diff -u -bur ulxmlrpcpp-1.7.3/ulxmlrpcpp/ulxr_tcpip_connection.h ulxmlrpcpp-1.7.3-patched/ulxmlrpcpp/ulxr_tcpip_connection.h
+--- ulxmlrpcpp-1.7.3/ulxmlrpcpp/ulxr_tcpip_connection.h	2007-11-18 12:01:08.000000000 -0800
++++ ulxmlrpcpp-1.7.3-patched/ulxmlrpcpp/ulxr_tcpip_connection.h	2009-05-13 14:17:09.410356500 -0700
+@@ -144,6 +144,11 @@
+    */
+    CppString getPeerName() const;
+ 
++ /** Gets the address of the remote machine.
++   * @return  the remote address.
++   */
++   struct sockaddr_in getPeerAddr() const;
++
+  /** Converts ascii text to in_addr struct.
+    * @param address  literal string of address to convert
+    * @param saddr    return struct with data

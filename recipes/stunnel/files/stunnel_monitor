@@ -1,0 +1,16 @@
+#!/bin/sh
+
+PIDFILE=/var/run/stunnel_monitor.pid
+echo $$ > $PIDFILE
+
+service=stunnel
+
+while [ 1 ] ; do
+	  sleep 10
+	  pids=`/bin/pidof $service`
+	  if [ $? -ne 0 ]; then
+		  /etc/init.d/stunnel restart
+	  fi
+done
+
+rm -f $PIDFILE

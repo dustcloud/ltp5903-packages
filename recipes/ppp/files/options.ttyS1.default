@@ -1,0 +1,6 @@
+# hardware flow control is automatically on for ttyS1 -- but because of a
+# kernel bug, ppp should not try to enable flow control
+nocrtscts
+passive
+192.168.101.10:192.168.101.11
+connect '/usr/sbin/chat -v -t 3600 -f /etc/ppp/winclient.chat'

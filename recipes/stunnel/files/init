@@ -1,0 +1,48 @@
+#!/bin/sh
+
+DAEMON=/usr/bin/stunnel
+MONITOR=/usr/bin/stunnel_monitor
+
+NAME=stunnel
+DESC="SSL Tunnel"
+ARGS=""
+PID_FILE=/var/run/stunnel.pid
+MONITOR_PID_FILE=/var/run/stunnel_monitor.pid
+
+test -f $DAEMON || exit 0
+
+# note: commands that fail will cause this script to exit
+set -e
+
+case "$1" in
+    start)
+        echo -n "Starting $DESC: $NAME... "
+	start-stop-daemon -S -p $PID_FILE -x $DAEMON -- $ARGS
+	start-stop-daemon -S -b -p $MONITOR_PID_FILE -x $MONITOR 
+	echo "done."
+	;;
+
+    stop)
+        echo -n "Stopping $DESC: $NAME... "
+	# kill the monitor process first
+	# start-stop-daemon needs /bin/sh to find the monitor script
+	start-stop-daemon -K -x /bin/sh -p $MONITOR_PID_FILE || true
+	# don't report an error if we try to stop stunnel, but it's not running
+	start-stop-daemon -K -x $DAEMON -p $PID_FILE || true
+	rm -f "$PID_FILE" "$MONITOR_PID_FILE"
+	echo "done."
+	;;
+
+    restart)
+        echo "Restarting $DESC: $NAME... "
+	$0 stop
+	$0 start
+	;;
+
+    *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+	;;
+esac
+
+exit 0

@@ -1,0 +1,196 @@
+Index: heartbeat-1.2.5/include/clplumbing/longclock.h
+===================================================================
+RCS file: /data/cvs_nfs/heartbeat-1.2.5/include/clplumbing/longclock.h,v
+diff -u -N -r1.1 -r1.2
+--- heartbeat-1.2.5/include/clplumbing/longclock.h	23 Mar 2005 23:28:48 -0000	1.1
++++ heartbeat-1.2.5/include/clplumbing/longclock.h	1 Apr 2009 20:33:16 -0000	1.2
+@@ -38,6 +38,11 @@
+  *
+  *	The functions provided here are:
+  *
++ *      unsigned long   cl_times(void);
++ *                      A rational wrapper for the times(2) call
++ *                      for those cases where only the return value
++ *                      is wanted.
++ *
+  *	longclock_t	time_longclock(void);
+  *			Returns current time as a longclock_t.
+  *
+@@ -76,6 +81,7 @@
+  *
+  *	extern const longclock_t	zero_longclock;
+  */
++extern unsigned long cl_times(void);
+ 
+ #ifdef CLOCK_T_IS_LONG_ENOUGH
+ #	ifndef	HAVE_LONGCLOCK_ARITHMETIC
+Index: heartbeat-1.2.5/lib/stonith/expect.c
+===================================================================
+RCS file: /data/cvs_nfs/heartbeat-1.2.5/lib/stonith/expect.c,v
+diff -u -N -r1.1 -r1.2
+--- heartbeat-1.2.5/lib/stonith/expect.c	23 Mar 2005 23:28:48 -0000	1.1
++++ heartbeat-1.2.5/lib/stonith/expect.c	1 Apr 2009 20:33:17 -0000	1.2
+@@ -45,7 +45,34 @@
+ 
+ #include <stonith/stonith.h>
+ 
++#ifdef TIMES_ALLOWS_NULL_PARAM
++#      define  TIMES_PARAM     NULL
++#else
++       static struct tms       dummy_longclock_tms_struct;
++#      define  TIMES_PARAM     &dummy_longclock_tms_struct
++#endif
+ 
++static unsigned long
++our_times(void)        /* Make times(2) behave rationally on Linux */
++{
++       int             save_errno = errno;
++       clock_t ret;
++
++       /*
++        * This code copied from clplumbing/longclock.c to avoid
++        * making STONITH depend on clplumbing.  See it for an explanation
++        */
++       errno   = 0;
++       ret     = times(TIMES_PARAM);
++
++       if (errno != 0) {
++               ret = (clock_t) (-errno);
++       }
++       errno = save_errno;
++       return (unsigned long)ret;
++}
++
++
+ /*
+  *	Look for ('expect') any of a series of tokens in the input
+  *	Return the token type for the given token or -1 on error.
+@@ -55,11 +82,6 @@
+ ExpectToken(int	fd, struct Etoken * toklist, int to_secs, char * buf
+ ,	int maxline)
+ {
+-	/*
+-	 * We use unsigned long instead of clock_t here because it's signed,
+-	 * but the return value from times() is basically unsigned...
+-	 * This is broken, but according to POSIX ;-)
+-	 */
+ 	unsigned long	starttime;
+ 	unsigned long	endtime;
+ 	int		wraparound=0;
+@@ -74,7 +96,7 @@
+ 
+ 	/* Figure out when to give up.  Handle lbolt wraparound */
+ 
+-	starttime = times(NULL);
++	starttime = our_times();
+ 	ticks = (to_secs*hz);
+ 	endtime = starttime + ticks;
+ 
+@@ -91,7 +113,7 @@
+ 	}
+ 
+ 
+-	while (now = times(NULL),
++	while (now = our_times(),
+ 		(wraparound && (now > starttime || now <= endtime))
+ 		||	(!wraparound && now <= endtime)) {
+ 
+Index: heartbeat-1.2.5/lib/clplumbing/longclock.c
+===================================================================
+RCS file: /data/cvs_nfs/heartbeat-1.2.5/lib/clplumbing/longclock.c,v
+diff -u -N -r1.1 -r1.2
+--- heartbeat-1.2.5/lib/clplumbing/longclock.c	23 Mar 2005 23:28:48 -0000	1.1
++++ heartbeat-1.2.5/lib/clplumbing/longclock.c	1 Apr 2009 20:33:16 -0000	1.2
+@@ -24,6 +24,7 @@
+ #include <portability.h>
+ #include <unistd.h>
+ #include <sys/times.h>
++#include <errno.h>
+ #include <clplumbing/longclock.h>
+ 
+ #ifndef CLOCK_T_IS_LONG_ENOUGH
+@@ -53,7 +54,14 @@
+ #	undef	cmp_longclock
+ #endif
+ 
++#ifdef TIMES_ALLOWS_NULL_PARAM
++#      define  TIMES_PARAM     NULL
++#else
++       static struct tms       dummy_longclock_tms_struct;
++#      define  TIMES_PARAM     &dummy_longclock_tms_struct
++#endif
+ 
++
+ unsigned
+ hz_longclock(void)
+ {
+@@ -67,26 +75,62 @@
+ 	return Hz;
+ }
+ 
++unsigned long
++cl_times(void) /* Make times(2) behave rationally on Linux */
++{
++       int             save_errno = errno;
++       clock_t ret;
++
++       /*
++        * times(2) really returns an unsigned value ...
++        *
++        * We don't check to see if we got back the error value (-1), because
++        * the only possibility for an error would be if the address of 
++        * longclock_dummy_tms_struct was invalid.  Since it's a
++        * compiler-generated address, we assume that errors are impossible.
++        * And, unfortunately, it is quite possible for the correct return
++        * from times(2) to be exactly (clock_t)-1.  Sigh...
++        *
++        */
++       errno   = 0;
++       ret     = times(TIMES_PARAM);
++
++/*
++ *     This is to work around a bug in the system call interface
++ *     for times(2) found in glibc on Linux (and maybe elsewhere)
++ *     It changes the return values from -1 to -4096 all into
++ *     -1 and then dumps the -(return value) into errno.
++ *
++ *     This totally bizarre behavior seems to be widespread in
++ *     versions of Linux and glibc.
++ *
++ *     Many thanks to Wolfgang Dumhs <wolfgang.dumhs (at) gmx.at>
++ *     for finding and documenting this bizarre behavior.
++ */
++       if (errno != 0) {
++               ret = (clock_t) (-errno);
++       }
++       errno = save_errno;
++       return (unsigned long)ret;
++}
++
++
+ #ifdef CLOCK_T_IS_LONG_ENOUGH
+ 
+ longclock_t
+ time_longclock(void)
+ {
+-	struct tms	longclock_dummy_tms_struct;
+-	return (longclock_t)times(&longclock_dummy_tms_struct);
++       return (longclock_t)cl_times();
+ }
+ 
+ #else	/* clock_t is shorter than 64 bits */
+ 
+ longclock_t
+ time_longclock(void)
+ {
+-	struct tms	longclock_dummy_tms_struct;
+-	unsigned long	timesval;
++	unsigned long	timesval;	
+ 	
+-	
+-	/* times really returns an unsigned value ... */
+-	timesval = (unsigned long) times(&longclock_dummy_tms_struct);
++	timesval = (unsigned long) cl_times();
+ 
+ 	if (!lasttimes) {
+ 		lasttimes = timesval;

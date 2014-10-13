@@ -1,0 +1,12 @@
+diff -bur ulxmlrpcpp-1.7.4/ulxmlrpcpp/ulxmlrpcpp.h.orig ulxmlrpcpp-1.7.4/ulxmlrpcpp/ulxmlrpcpp.h
+--- ulxmlrpcpp-1.7.4/ulxmlrpcpp/ulxmlrpcpp.h.orig	2009-07-07 02:06:23.000000000 +0530
++++ ulxmlrpcpp-1.7.4/ulxmlrpcpp/ulxmlrpcpp.h	2009-07-07 02:06:45.000000000 +0530
+@@ -839,7 +839,7 @@
+ #if defined(__CYGWIN__)
+ # define ulxr_snprintf   snprintf
+ #else
+-# define ulxr_snprintf   std::snprintf
++# define ulxr_snprintf   snprintf
+ #endif
+ 
+ # define ulxr_swprintf   std::swprintf

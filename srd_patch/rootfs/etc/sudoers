@@ -1,0 +1,57 @@
+# sudoers file.
+#
+# This file MUST be edited with the 'visudo' command as root.
+
+
+# Cmnd alias specification
+
+#include /etc/sudoers.smartmesh
+
+Cmnd_Alias ADMIN= \
+        /bin/hostname, \
+        /bin/stty, \
+        /sbin/hwclock, \
+        /usr/bin/passwd dust, \
+        /usr/bin/passwd dustcli, \
+        /usr/bin/passwd ppp*, \
+        /sbin/ifdown, \
+	/sbin/ifup, \
+        /usr/bin/ifswitch-to-dhcp, \
+	/usr/bin/ifswitch-to-static, \
+        /usr/bin/ipkg, \
+	/bin/vi /etc/stunnel/stunnel.conf, \
+	/bin/vi /etc/ntp.conf, \
+	/bin/vi /etc/hosts, \
+	/bin/vi /etc/ipkg/*, \
+	/bin/rm /core.*, \
+	/bin/chmod * /core.*, \
+	/usr/sbin/update-rc.d, \
+	/bin/mount, \
+	/bin/umount
+
+Cmnd_Alias BOOT=/sbin/shutdown,/sbin/halt,/sbin/reboot
+Cmnd_Alias RESTART=/etc/init.d/ntpd, \
+	/etc/init.d/stunnel, \
+	/etc/init.d/syslog, \
+	/etc/init.d/thttpd
+Cmnd_Alias PPP=/usr/sbin/config-ppp, \
+	/bin/vi /etc/ppp/*
+
+# Defaults specification
+
+Defaults 	!syslog
+Defaults 	!lecture
+Defaults:dust	!authenticate
+
+# Runas alias specification
+
+# User privilege specification
+root	ALL = (ALL) ALL
+%dust	ALL = ADMIN, BOOT, RESTART, PPP
+%ppp	ALL = NOPASSWD: PPP
+
+# Uncomment to allow people in group wheel to run all commands
+# %wheel	ALL=(ALL)	ALL
+
+# Same thing without a password
+# %wheel	ALL=(ALL)	NOPASSWD: ALL

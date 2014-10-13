@@ -1,0 +1,34 @@
+# Log to syslog as facility "daemon" 
+logfacility daemon
+baud 115200
+
+# List our cluster members 
+node my-host-1 my-host-2
+
+# Send one heartbeat each second 
+keepalive 1
+
+# Declare nodes dead after 120 seconds 
+deadtime 120
+
+# Issue a 'late heartbeat' warning after 60 seconds
+warntime 60
+
+# Send heartbeats over the serial link
+serial /dev/ttyS1
+
+# Send heartbeats the ethernet interface
+ucast eth1 my-host-1
+ucast eth1 my-host-2
+
+# Ping our router to monitor ethernet connectivity 
+ping 192.168.1.10
+
+# Don't fail back to the primary automatically 
+auto_failback no
+
+# Failover on network failures 
+respawn hacluster /usr/lib/heartbeat/ipfail
+
+# Authorize the Manager watchdog to connect to heartbeat
+apiauth watchdog gid=dust

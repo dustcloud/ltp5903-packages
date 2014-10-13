@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# detect the port
+port=`tty | cut -d / -f 3`
+
+# make sure ppp is configured for windows
+sudo /usr/sbin/config-ppp -w -p $port
+
+# launch the ppp server
+exec /usr/sbin/pppd
