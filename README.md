@@ -25,10 +25,10 @@ Use bitbake to build package(s).
 
 Find .ipk file(s) in tmp/deploy/...
 
-Often the recipe will build multiple packages so libraries, tools or
-documentation can be separated and not installed if not desired.
+Often the recipe will build multiple packages to separate libraries, tools or
+documentation and not installed if not desired.
 
-- See the "Using bitbake" document for more details on bitbake.
+- See the "Using bitbake" document for more details on bitbake and OpenEmbedded.
 - See the "Updating package recipes" document for more details on how to 
   update packages to fix security issues. 
 
@@ -45,17 +45,6 @@ The default configuration for this VM prevents other hosts on the network from
 connecting. This configuration is designed to keep the VM itself as isolated
 as possible for security purposes because the VM may not be online to receive
 important security patches.
-
-
-* Using bitbake
-
-***INSERT
-
-* Background
-
-** OpenEmbedded
-
-OpenEmbedded is a collection of build configurations and recipes for a large number of open source packages. 
 
 
 * VM setup
