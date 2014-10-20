@@ -4,25 +4,17 @@ IMAGE_PREPROCESS_COMMAND = "create_etc_timestamp; \
 	preprocess_command ; \
 	"
 
-# Don't include debug packages in image
-DISTRO_TYPE = "release"
-
 PREFERRED_PROVIDER_ifconfig = "netbase"
 PREFERRED_PROVIDER_tar = "tar"
 PREFERRED_PROVIDER_gzip = "gzip"
-
-# ACK: this isn't sufficient to select minicom 2.1. I had to remove
-# minicom-2.3 from the openembedded recipes. -- dbacher 12/18/09
-PREFERRED_PROVIDER_minicom = "minicom"
-PREFERRED_VERSION_minicom = "2.1"
-
 
 # FEED_URIS is used by insert_feed_uris in image.bbclass
 # These get emitted as src/gz not src
 # Make sure there is no trailing line
 DUST_FEED_URI = "http://ipkg-repository.dusthq.dust-inc.com"
 FEED_URIS = "root##${DUST_FEED_URI}/pm2511-root \
-             trunk##${DUST_FEED_URI}/trunk-ipkgs/Manager-4.0.0-devel-pm2511"
+	     marconi##${DUST_FEED_URI}/marconi-ipkgs/Marconi-2.2.0-devel-pm2511 \
+             ranger##${DUST_FEED_URI}/ranger-ipkgs/Ranger-3.0.0-devel-pm2511"
 
 # See the note in base-image.bb
 # These can be empty since FEED_URIS generates the .conf files
@@ -49,7 +41,6 @@ ANGSTROM_EXTRA_INSTALL += " \
 			   minicom \
 			   ntp \
 			   ntp-bin \
-			   ppp-modules \
 			   ppp \
 			   stunnel \
 			   sudo \
@@ -57,9 +48,6 @@ ANGSTROM_EXTRA_INSTALL += " \
 			   thttpd \
 			   python-core \
 			   python-modules \
-			   python-misc \
-			   python-xml \
-			   python-xmlrpc \
 			   nfs-utils-client \
 			   iputils-ping \
 			   util-linux-ng-hwclock \
@@ -68,9 +56,10 @@ ANGSTROM_EXTRA_INSTALL += " \
                            libstdc++ \
                            expat \
                            ulxmlrpcpp \
-			   netfilter-modules \
-			   iptables \
-			   at91-gpio \
+			   ppp-modules \
+                           at91-gpio \
+                           netfilter-modules \
+                           iptables \
    			   "
 
 # These are all existing ipkgs, not built from source.
@@ -108,18 +97,22 @@ preprocess_command() {
 	cp -v ${PYTHON_IMAGE_LIB_DIR}/platform.py* ${IMAGE_ROOTFS}/usr/lib/python2.6/
 	ln -sf /bin/bash ${IMAGE_ROOTFS}/bin/sh
 
+	# custom startup scripts
+	ln -sf ../init.d/local_2 ${IMAGE_ROOTFS}/etc/rc0.d/K80local_2
+	ln -sf ../init.d/local_2 ${IMAGE_ROOTFS}/etc/rc2.d/S80local_2
+	cp -Rv ${IMAGE_ROOTFS}/etc/rc0.d/*local* ${IMAGE_ROOTFS}/etc/rc1.d/
+	cp -Rv ${IMAGE_ROOTFS}/etc/rc0.d/*local* ${IMAGE_ROOTFS}/etc/rc6.d/
+	cp -Rv ${IMAGE_ROOTFS}/etc/rc2.d/*local* ${IMAGE_ROOTFS}/etc/rc3.d/
+	cp -Rv ${IMAGE_ROOTFS}/etc/rc2.d/*local* ${IMAGE_ROOTFS}/etc/rc4.d/
+	cp -Rv ${IMAGE_ROOTFS}/etc/rc2.d/*local* ${IMAGE_ROOTFS}/etc/rc5.d/
+
 	# copy the patch directory
 	cp -Rvf ${IMAGE_ROOTFS}/../../srd_patch/rootfs/* ${IMAGE_ROOTFS}/
 
-	# create SD card mount points
-	[ ! -d ${IMAGE_ROOTFS}/media/card ] && mkdir ${IMAGE_ROOTFS}/media/card
-	[ ! -d ${IMAGE_ROOTFS}/media/card2 ] && mkdir ${IMAGE_ROOTFS}/media/card2
 	ln -sf /media/card ${IMAGE_ROOTFS}/mnt/mmc
 
 	# cleanup .svn files
 	find ${IMAGE_ROOTFS} -name .svn -type d | xargs rm -rf
-
-	rm -f ${IMAGE_ROOTFS}/etc/issue
 
 	# home directory clean
 	mkdir ${IMAGE_ROOTFS}/home/dust
@@ -144,5 +137,8 @@ preprocess_command() {
 	rm ${IMAGE_ROOTFS}/etc/opkg/perl-feed.conf
 	rm ${IMAGE_ROOTFS}/etc/opkg/python-feed.conf
 	rm ${IMAGE_ROOTFS}/etc/opkg/walnut-feed.conf
+	for f in marconi ranger ; do 
+		mv ${IPKG_CONF_DIR}/$f-feed.conf ${IPKG_CONF_DIR}/$f-feed.in
+	done 
 }
 

@@ -1,6 +1,6 @@
 require stunnel.inc
 
-PR = "r1"
+PR = "r2"
 
 SRC_URI = "ftp://ftp.stunnel.org/stunnel/archive/5.x/stunnel-${PV}.tar.gz \
 	   file://automake.patch;patch=1 \

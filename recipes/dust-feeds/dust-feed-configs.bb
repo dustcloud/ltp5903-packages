@@ -19,7 +19,6 @@ do_compile() {
 	done
 
 	echo "src root http://ipkg-repository.dusthq.dust-inc.com/pm2511-root" > ${S}/${sysconfdir}/opkg/root-feed.conf
-	echo "src dust http://ipkg-repository.dusthq.dust-inc.com/brightsource-ipkgs/Manager-3.1.0-devel-pm2511" > ${S}/${sysconfdir}/opkg/brightsource-feed.in
 	echo "src dust http://ipkg-repository.dusthq.dust-inc.com/ranger-ipkgs/Ranger-3.0.0-devel-pm2511" > ${S}/${sysconfdir}/opkg/ranger-feed.in
 	echo "src dust http://ipkg-repository.dusthq.dust-inc.com/marconi-ipkgs/Marconi-2.2.0-pm2511" > ${S}/${sysconfdir}/opkg/marconi-feed.in
 }

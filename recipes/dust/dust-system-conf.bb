@@ -5,7 +5,7 @@ LICENSE = "Dust"
 
 PROVIDES = "dust-system-conf"
 PN = "dust-system-conf"
-PV = "3.0.0.14"
+PV = "2.2.0.18"
 PR = ""
 PACKAGES = "${PN}"
 
@@ -14,6 +14,6 @@ PACKAGES = "${PN}"
 # As used in openembedded/classes/image.bbclass via rootfs_ipk.bbclass
 PACKAGE_INSTALL_append = ${DEPLOY_DIR_IPK}/armv5te/${PN}_${PV}_armv5te.ipk
 
-SRC_URI = "http://ipkg-repository/brightsource-ipkgs/Manager-3.1.0-devel-pm2511/${PN}_${PV}_armv5te.ipk"
+SRC_URI = "http://ipkg-repository/marconi-ipkgs/Marconi-2.2.0-pm2511/${PN}_${PV}_armv5te.ipk"
 
 inherit dust

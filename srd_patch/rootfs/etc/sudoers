@@ -1,39 +1,56 @@
 # sudoers file.
 #
 # This file MUST be edited with the 'visudo' command as root.
+#
+# See the sudoers man page for the details on how to write a sudoers file.
+#
 
+# Host alias specification
+
+# User alias specification
 
 # Cmnd alias specification
 
-#include /etc/sudoers.smartmesh
-
 Cmnd_Alias ADMIN= \
+        /bin/cat /root/*.log*, \
+        /bin/cat /root/.ssh/id*.pub, \
+        /bin/cp /root/dcc-config.xml* /root/dcc-config.xml*, \
         /bin/hostname, \
+        /bin/mv /tmp/* /root/otap/*.otap, \
+        /bin/mv /tmp/* /etc/ipkg.conf, \
+        /bin/ping, \
+        /bin/rm -f /root/motes.xml, \
         /bin/stty, \
         /sbin/hwclock, \
-        /usr/bin/passwd dust, \
-        /usr/bin/passwd dustcli, \
-        /usr/bin/passwd ppp*, \
-        /sbin/ifdown, \
-	/sbin/ifup, \
+        /sbin/passwd dustcli, \
+        /usr/bin/clear-motes, \
+        /usr/bin/config-redundancy, \
+        /usr/bin/config-login, \
+        /usr/bin/gw_test, \
+        /usr/bin/ha-config, \
         /usr/bin/ifswitch-to-dhcp, \
 	/usr/bin/ifswitch-to-static, \
         /usr/bin/ipkg, \
-	/bin/vi /etc/stunnel/stunnel.conf, \
-	/bin/vi /etc/ntp.conf, \
-	/bin/vi /etc/hosts, \
-	/bin/vi /etc/ipkg/*, \
+        /usr/bin/led_test, \
+        /usr/bin/restore-dcc-conf, \
+        /usr/bin/restore-factory-conf, \
+        /usr/bin/serial_test, \
+        /usr/bin/set-conf-param, \
+	/usr/bin/set-dustcli-password, \
+        /usr/bin/set-redundancy-keys, \
+        /usr/bin/set-serial, \
+	/usr/bin/set-system-password, \
+        /usr/bin/set-time, \
+        /usr/bin/setup-manager, \
+        /usr/lib/heartbeat/hb_*, \
 	/bin/rm /core.*, \
 	/bin/chmod * /core.*, \
-	/usr/sbin/update-rc.d, \
-	/bin/mount, \
-	/bin/umount
+	/bin/vi /etc/firewall.conf
 
 Cmnd_Alias BOOT=/sbin/shutdown,/sbin/halt,/sbin/reboot
-Cmnd_Alias RESTART=/etc/init.d/ntpd, \
-	/etc/init.d/stunnel, \
-	/etc/init.d/syslog, \
-	/etc/init.d/thttpd
+Cmnd_Alias RESTART=/etc/init.d/dcc, \
+	/etc/init.d/firewall, \
+	/etc/init.d/stunnel
 Cmnd_Alias PPP=/usr/sbin/config-ppp, \
 	/bin/vi /etc/ppp/*
 

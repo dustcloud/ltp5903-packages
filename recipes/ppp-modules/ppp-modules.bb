@@ -5,8 +5,8 @@ LICENSE = "Dust"
 
 PROVIDES = "ppp-modules"
 PN = "ppp-modules"
-PV = "1.1"
-PR = "r1"
+PV = "1.0.1"
+PR = ""
 PACKAGES = "${PN}"
 
 # Just fetch and place the ipkg in the correct place to build the rootfs.
@@ -14,7 +14,7 @@ PACKAGES = "${PN}"
 # As used in openembedded/classes/image.bbclass via rootfs_ipk.bbclass
 PACKAGE_INSTALL_append = ${DEPLOY_DIR_IPK}/armv5te/${PN}_${PV}_armv5te.ipk
 
-SRC_URI = "http://ipkg-repository.dusthq.dust-inc.com/pm2511-root/${PN}_${PV}_armv5te.ipk"
+SRC_URI = "http://imagehost/pm2511-root/${PN}_${PV}_armv5te.ipk"
 
 do_unpack() {
   echo "Null unpack method"

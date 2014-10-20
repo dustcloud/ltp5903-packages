@@ -8,6 +8,5 @@ tmpfs                /var/volatile        tmpfs      defaults              0  0
 tmpfs                /dev/shm             tmpfs      mode=0777             0  0
 tmpfs                /media/ram           tmpfs      defaults              0  0
 
-# SD card mount point(s)
-/dev/mmcblk0p1       /media/card          auto       defaults,sync,noauto,uid=500,gid=500  0  0
-/dev/mmcblk0p2       /media/card2          auto       defaults,sync,noauto,uid=500,gid=500  0  0
+# uncomment this if your device has a SD/MMC/Transflash slot
+/dev/mmcblk0p1       /media/card          auto       defaults,sync,noauto  0  0
