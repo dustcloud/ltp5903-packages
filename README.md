@@ -16,22 +16,30 @@ On the PM2511 Toolchain VM, clone this repository. It is important to build
 from the branch that matches your Manager version, otherwise you may introduce
 incompatible packages.
 
-    git clone https://github.com/dustcloud/pm2511-packages.git
-    git checkout 4.x-stable
+    $ git clone https://github.com/dustcloud/pm2511-packages.git
 
-Source the build environment.
+Setup the build environment.
 
-    cd pm2511-packages
-    . oe-setup.sh
+    $ cd pm2511-packages
+    $ git checkout 4.x-stable
+    $ . oe-setup.sh
 
 Use bitbake to build package(s).
 
-    bitbake bash
+    $ bitbake bash
 
-Find .ipk file(s) in tmp/deploy/...
+Find .ipk file(s) in _tmp/deploy/glibc/ipk/armv5te_. You may wish to create a
+symlink to the ipkg directory.
+
+    $ ln -s tmp/deploy/glibc/ipk/armv5te ipkgs
 
 Often the recipe will build multiple packages to separate libraries, tools or
-documentation and not installed if not desired.
+documentation. It conserves space to only install the packages that are
+necessary.
+
+The resulting packages can be copied to the PM2511 Manager and installed.
+
+    dust@manager$ sudo ipkg install foo.ipk
 
 - See the "Using bitbake" document for more details on bitbake and OpenEmbedded.
 - See the "Updating package recipes" document for more details on how to 
