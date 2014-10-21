@@ -23,6 +23,7 @@ SRC_URI += "file://configure-targets.patch;patch=1 \
             file://oe-ldflags.patch;patch=1 \
 	    file://libdeps-first.patch;patch=1 \
 	    file://engines-install-in-libdir-ssl.patch;patch=1 \
+	    file://find.pl \
 	   "
 
 PARALLEL_MAKE = ""
@@ -34,3 +35,7 @@ PACKAGES += " \
 
 FILES_${PN}-engines = "${libdir}/ssl/engines/*.so"
 FILES_${PN}-engines-dbg = "${libdir}/ssl/engines/.debug"
+
+do_configure_prepend() {
+  cp ${WORKDIR}/find.pl ${S}/util/find.pl
+}
