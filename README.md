@@ -1,27 +1,32 @@
-* Building PM2511 packages
+# Building PM2511 packages
 
 In order to build packages for the PM2511, you will need a Virtual Machine
 (VM) with the bitbake and OpenEmbedded build components.
 
-The VM can be downloaded from TODO
+The VM can be downloaded from TODO 
+http://imagehost/vms/pm2511-toolchain-2014-10.7z
 
-Once you have the VM, connect to the VM using SSH (details below) and follow
-the steps below to build a package.
+You will need 7z http://www.7-zip.org/ to unarchive the VirtualBox
+VM. Unarchive the VM to a local disk and "Add" the VM in VirtualBox.
 
-On the PM2511 Toolchain VM, clone this repository. It is important to clone
-the branch that matches your Manager version, otherwise you may introduce
+Once you have the VM up and running, connect to the VM using SSH (details
+below) and follow the steps below to build a package.
+
+On the PM2511 Toolchain VM, clone this repository. It is important to build
+from the branch that matches your Manager version, otherwise you may introduce
 incompatible packages.
 
-  git clone REPO_URL
+    git clone https://github.com/dustcloud/pm2511-packages.git
+    git checkout 4.x-stable
 
 Source the build environment.
 
-  cd pm2511-packages
-  . oe-setup.sh
+    cd pm2511-packages
+    . oe-setup.sh
 
 Use bitbake to build package(s).
 
-  bitbake bash
+    bitbake bash
 
 Find .ipk file(s) in tmp/deploy/...
 
@@ -33,7 +38,7 @@ documentation and not installed if not desired.
   update packages to fix security issues. 
 
 
-* PM2511 Toolchain Virtual Machine details
+# PM2511 Toolchain Virtual Machine details
 
 The PM2511 Toolchain VM is a VirtualBox VM. The system runs Ubuntu 12.04 LTS
 (Server) on a single i686 CPU with 384 MB RAM. The VM is configured to use the
@@ -46,43 +51,3 @@ connecting. This configuration is designed to keep the VM itself as isolated
 as possible for security purposes because the VM may not be online to receive
 important security patches.
 
-
-* VM setup
-
-The PM2511 Toolchain Virtual Machine is based on Ubuntu 12.04 LTS. Later
-versions of Ubuntu (such as 14.04) contain updated packages that cause
-problems with the relatively ancient build tools on which the PM2511
-cross-compiler was based.
-
-Here are the steps to create your own Virtual Machine. 
-
-** Packages
-
-Install required build packages (a C compiler and some ).
-
-  sudo apt-get install build-essential
-  sudo apt-get install help2man diffstat texi2html cvs
-
-Configure virtual machine for bitbake.
-
-  sudo dpkg-reconfigure dash
-
-Install texinfo 4.x
-
-- Under Ubuntu 12.04, you can install the distribution's texinfo package. 
-
-  sudo apt-get install texinfo
-
-- Under later versions, you should build texinfo from source.
-
-  TODO
-
-** Tools
-
-The bitbake, OpenEmbedded tools, and some missing sources are available. On the PM2511 Toolchain VM, these are installed under /tools.
-
-
-** Other adjustments made to OpenEmbedded
-
-- patch configure in quilt (Ubuntu 14.04)
-- patch unifdef
