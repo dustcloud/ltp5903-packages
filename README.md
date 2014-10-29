@@ -1,5 +1,5 @@
 The LTP5903 packages repository contains recipes for building ipkgs for the
-LTP5903.
+LTP5903 (aka Dust Networks PM2511).
 
 There are several important branches:
 - *master* contains the latest "tested" packages. This includes security patches that have not yet been pushed into a release.
