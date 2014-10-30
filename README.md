@@ -9,7 +9,7 @@ There are several important branches:
 
 In order to build packages for the LTP5903, you will need a Virtual Machine
 (VM) with the bitbake and OpenEmbedded build components. You can find the VM in the 
-Releases section of this repository.
+[Releases](https://github.com/dustcloud/ltp5903-packages/releases) section of this repository.
 
 Once you have a VM, follow the instructions on the [Building packages
 page](https://github.com/dustcloud/ltp5903-packages/wiki/Building-packages).
